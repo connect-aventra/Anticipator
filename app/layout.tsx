@@ -15,7 +15,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className="light">
+        <html lang="en" className="dark">
             <head>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
@@ -30,7 +30,7 @@ export default function RootLayout({
                                 theme: {
                                     extend: {
                                         colors: {
-                                            "primary": "#FF4F00",
+                                            "primary": "#22c55e",
                                             "background-light": "#FAFAFA",
                                             "background-dark": "#050505",
                                             "brand-black": "#0A0A0A",
