@@ -4,7 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
     const [email, setEmail] = useState('');
-    const [submitted, setSubmitted] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         const observerOptions = {
@@ -27,9 +38,32 @@ export default function Home() {
         return () => observer.disconnect();
     }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
+        setStatus('loading');
+        setMessage('');
+
+        try {
+            const res = await fetch('/api/waitlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setStatus('success');
+                setMessage('Thanks for joining! We\'ll be in touch soon.');
+                setEmail(''); // Clear email on success
+            } else {
+                setStatus('error');
+                setMessage(data.message || data.error || 'Something went wrong.');
+            }
+        } catch (error) {
+            setStatus('error');
+            setMessage('Failed to submit. Please try again.');
+        }
     };
 
     return (
@@ -37,14 +71,15 @@ export default function Home() {
             <div className="noise"></div>
 
             {/* Fixed Navigation */}
-            <nav className="fixed top-0 left-0 w-full z-40 px-8 py-6 flex justify-between items-center mix-blend-difference text-white">
-                <div className="flex items-center space-x-2">
-                    <span className="font-black text-xl tracking-tighter uppercase">Anticipator AI</span>
-                    <div className="w-2 h-2 rounded-full bg-primary pulse ml-2"></div>
+            <nav className={`fixed top-0 left-0 w-full z-40 px-6 md:px-8 flex justify-between items-center text-white transition-all duration-300 ${isScrolled ? 'py-4 bg-[#F2EDE4]/80 backdrop-blur-md border-b border-black/5 shadow-sm' : 'py-6 bg-transparent'}`}>
+                <div className="flex items-center space-x-3">
+                    <img src="/icon.svg" alt="Anticipator AI Logo" className="w-8 h-8" />
+                    <span className="font-black text-xl tracking-tighter uppercase relative text-black">
+                        Anticipator AI
+                    </span>
                 </div>
                 <div className="hidden md:flex space-x-12 text-sm font-medium tracking-widest uppercase">
-    
-                    <a href="#" className="bg-white text-black px-6 py-2.5 rounded-full text-xs font-bold hover:bg-primary hover:text-white transition-all">Join Waitlist</a>
+                    <a href="#" className="bg-black text-white px-6 py-2.5 rounded-full text-xs font-bold hover:bg-primary hover:text-white transition-all">Join Waitlist</a>
                 </div>
             </nav>
 
@@ -53,46 +88,53 @@ export default function Home() {
                 <div className="max-w-5xl text-center">
                     <span className="inline-block px-4 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold tracking-[0.2em] uppercase mb-8 reveal" style={{ animationDelay: '0.1s' }}>Beta Access Now Open</span>
 
-                    <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] text-brand-black mb-10 reveal" style={{ animationDelay: '0.2s' }}>
+                    <h1 className="text-4xl md:text-8xl font-black tracking-tighter leading-[0.9] text-brand-black mb-10 reveal" style={{ animationDelay: '0.2s' }}>
                         STOP UNCONTROLLED AI SPEND.
                     </h1>
 
-                    <p className="text-xl md:text-xl text-brand-black/60 max-w-2xl mx-auto mb-12 reveal" style={{ animationDelay: '0.3s' }}>
+                    <p className="text-base md:text-xl text-brand-black/60 max-w-2xl mx-auto mb-12 reveal leading-relaxed" style={{ animationDelay: '0.3s' }}>
                         Anticipator enforces cost guardrails for your LLM stack. <br />
                         We prevent waste before it hits your bill. <br />
                         No dashboards. No surprises. Just controlled spend. <br />
                     </p>
 
-                    {!submitted ? (
+                    {status === 'success' ? (
+                        <div className="text-green-600 font-bold text-xl reveal p-4 bg-green-50 rounded-xl border border-green-100" style={{ animationDelay: '0.4s' }}>
+                            {message}
+                        </div>
+                    ) : (
                         <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-center justify-center gap-2 max-w-lg mx-auto reveal" style={{ animationDelay: '0.4s' }}>
-                            <input
-                                className="w-full px-6 py-4 bg-white border border-brand-black/10 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg transition-all"
-                                placeholder="Enter your work email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <button className="w-full md:w-auto whitespace-nowrap px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-lg shadow-xl shadow-primary/20" type="submit">
-                                Get Early Access
+                            <div className="w-full relative">
+                                <input
+                                    className="w-full px-6 py-4 bg-white border border-brand-black/10 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg transition-all disabled:opacity-50"
+                                    placeholder="Enter your work email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={status === 'loading'}
+                                    required
+                                />
+                                {status === 'error' && (
+                                    <div className="absolute -bottom-6 left-0 text-red-500 text-xs font-bold w-full text-left pl-2">
+                                        {message}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                className="w-full md:w-auto whitespace-nowrap px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-lg shadow-xl shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
+                                type="submit"
+                                disabled={status === 'loading'}
+                            >
+                                {status === 'loading' ? (
+                                    <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                ) : 'Get Early Access'}
                             </button>
                         </form>
-                    ) : (
-                        <div className="text-green-600 font-bold text-xl reveal" style={{ animationDelay: '0.4s' }}>
-                            Thanks for joining! We'll be in touch soon.
-                        </div>
                     )}
 
-                    <p className="mt-4 text-xs text-brand-black/40 uppercase tracking-widest font-semibold reveal" style={{ animationDelay: '0.5s' }}>No credit card required • limited spots weekly</p>
+                    <p className="mt-8 text-xs text-brand-black/40 uppercase tracking-widest font-semibold reveal" style={{ animationDelay: '0.5s' }}>No credit card required • limited spots weekly</p>
                 </div>
             </section>
-
-            {/* Ticker */}
-            <div className="ticker-wrap bg-brand-black text-brand-cream py-6">
-                <div className="ticker">
-                    <div className="inline-block px-12 text-2xl font-black italic tracking-widest">SMART ROUTING • BUDGET ENFORCEMENT • CIRCUIT BREAKERS • SHADOW SAVINGS • NO BILL SURPRISES • FINANCIAL GUARDRAILS FOR LLMs • SMART ROUTING • BUDGET ENFORCEMENT • CIRCUIT BREAKERS • SHADOW SAVINGS • NO BILL SURPRISES • FINANCIAL GUARDRAILS FOR LLMs • SMART ROUTING • BUDGET ENFORCEMENT • CIRCUIT BREAKERS • SHADOW SAVINGS • NO BILL SURPRISES • FINANCIAL GUARDRAILS FOR LLMs </div>
-                </div>
-            </div>
 
             {/* Clarity Section */}
             <section className="py-32 px-6">
@@ -155,7 +197,7 @@ export default function Home() {
                         <div className="mt-6 text-zinc-400 uppercase tracking-widest font-bold text-sm">Historical Uptime</div>
                     </div>
                     <div className="group cursor-default">
-                        <div className="text-7xl font-black mb-2 tracking-tighter transition-all group-hover:text-primary">50%</div>
+                        <div className="text-7xl font-black mb-2 tracking-tighter transition-all group-hover:text-primary">40%</div>
                         <div className="h-1 w-12 bg-primary transition-all group-hover:w-full"></div>
                         <div className="mt-6 text-zinc-400 uppercase tracking-widest font-bold text-sm">Waste Prevented</div>
                     </div>
@@ -197,26 +239,40 @@ export default function Home() {
                     <span className="text-[15vw] font-black text-brand-black/5 uppercase leading-none tracking-tighter">Anticipator</span>
                 </div>
                 <div className="relative z-10 text-center max-w-2xl">
-                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-8">Ready to optimize?</h2>
+                    <h2 className="text-4xl md:text-7xl font-black tracking-tighter mb-8">Ready to optimize?</h2>
                     <p className="text-xl text-brand-black/60 mb-12">Join teams replacing monitoring with enforcement.</p>
-                    {!submitted ? (
+                    {status === 'success' ? (
+                        <div className="text-green-600 font-bold text-xl p-4 bg-green-50 rounded-xl border border-green-100">
+                            {message}
+                        </div>
+                    ) : (
                         <form onSubmit={handleSubmit} className="flex flex-col md:flex-row items-center justify-center gap-2">
-                            <input
-                                className="w-full px-6 py-4 bg-white border border-brand-black/10 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg transition-all"
-                                placeholder="Enter your work email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <button className="w-full md:w-auto whitespace-nowrap px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-lg shadow-xl shadow-primary/20" type="submit">
-                                Join Waitlist
+                            <div className="w-full relative">
+                                <input
+                                    className="w-full px-6 py-4 bg-white border border-brand-black/10 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-lg transition-all disabled:opacity-50"
+                                    placeholder="Enter your work email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={status === 'loading'}
+                                    required
+                                />
+                                {status === 'error' && (
+                                    <div className="absolute -bottom-6 left-0 text-red-500 text-xs font-bold w-full text-left pl-2">
+                                        {message}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                className="w-full md:w-auto whitespace-nowrap px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-lg shadow-xl shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px]"
+                                type="submit"
+                                disabled={status === 'loading'}
+                            >
+                                {status === 'loading' ? (
+                                    <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                ) : 'Join Waitlist'}
                             </button>
                         </form>
-                    ) : (
-                        <div className="text-green-600 font-bold text-xl">
-                            You're on the list!
-                        </div>
                     )}
                     <p className="mt-6 text-sm font-medium text-brand-black/40">Integrating with GPT, Claude, Mistral, and more.</p>
                 </div>
@@ -224,16 +280,16 @@ export default function Home() {
 
             {/* Footer */}
             <footer className="py-12 border-t border-brand-black/5 px-8">
-                <div className="max-w-7xl mx-auto flex flex-col md:row justify-between items-center text-sm font-medium text-brand-black/40">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm font-medium text-brand-black/40">
                     <div className="flex items-center space-x-2 mb-4 md:mb-0">
+                        <img src="/icon.svg" alt="Anticipator AI Logo" className="w-5 h-5" />
                         <span className="font-black tracking-tighter text-brand-black uppercase">Anticipator AI</span>
-                        <span>© 2024</span>
+                        <span>© 2026</span>
                     </div>
                     <div className="flex space-x-8 uppercase tracking-widest text-[10px]">
                         <a href="#" className="hover:text-brand-black transition-colors">Twitter</a>
-                        <a href="#" className="hover:text-brand-black transition-colors">GitHub</a>
-                        <a href="#" className="hover:text-brand-black transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-brand-black transition-colors">Terms</a>
+                        <a href="#" className="hover:text-brand-black transition-colors">Youtube</a>
+                        <a href="#" className="hover:text-brand-black transition-colors">Linkden</a>
                     </div>
                 </div>
             </footer>

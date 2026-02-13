@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
     title: 'Anticipator AI ',
     description: 'Anticipator intelligently routes every request to the cheapest model that maintains your quality standards.',
+    icons: {
+        icon: '/icon.svg',
+    },
 };
 
 export default function RootLayout({
@@ -27,10 +30,10 @@ export default function RootLayout({
                                 theme: {
                                     extend: {
                                         colors: {
-                                            "primary": "#e5582a",
-                                            "background-light": "#f8f6f6",
-                                            "background-dark": "#211511",
-                                            "brand-black": "#0C0C0B",
+                                            "primary": "#FF4F00",
+                                            "background-light": "#FAFAFA",
+                                            "background-dark": "#050505",
+                                            "brand-black": "#0A0A0A",
                                             "brand-cream": "#F2EDE4",
                                         },
                                         fontFamily: {
