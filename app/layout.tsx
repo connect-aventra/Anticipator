@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Anticipator AI ',
+    title: 'Anticipator',
     description: 'Anticipator intelligently routes every request to the cheapest model that maintains your quality standards.',
     icons: {
         icon: '/icon.svg',

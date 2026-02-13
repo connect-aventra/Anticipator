@@ -73,9 +73,9 @@ export default function Home() {
             {/* Fixed Navigation */}
             <nav className={`fixed top-0 left-0 w-full z-40 px-6 md:px-8 flex justify-between items-center text-white transition-all duration-300 ${isScrolled ? 'py-4 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 shadow-sm' : 'py-6 bg-transparent'}`}>
                 <div className="flex items-center space-x-3">
-                    <img src="/icon.svg" alt="Anticipator AI Logo" className="w-8 h-8 invert" />
+                    <img src="/icon.svg" alt="Anticipator Logo" className="w-8 h-8 invert" />
                     <span className="font-black text-xl tracking-tighter uppercase relative text-brand-cream">
-                        Anticipator AI
+                        Anticipator
                     </span>
                 </div>
                 <div className="hidden md:flex space-x-12 text-sm font-medium tracking-widest uppercase">
@@ -282,8 +282,8 @@ export default function Home() {
             <footer className="py-12 border-t border-white/5 px-8">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm font-medium text-brand-cream/40">
                     <div className="flex items-center space-x-2 mb-4 md:mb-0">
-                        <img src="/icon.svg" alt="Anticipator AI Logo" className="w-5 h-5 invert" />
-                        <span className="font-black tracking-tighter text-brand-cream uppercase">Anticipator AI</span>
+                        <img src="/icon.svg" alt="Anticipator Logo" className="w-5 h-5 invert" />
+                        <span className="font-black tracking-tighter text-brand-cream uppercase">Anticipator</span>
                         <span>© 2026</span>
                     </div>
                     <div className="flex space-x-8 uppercase tracking-widest text-[10px]">
